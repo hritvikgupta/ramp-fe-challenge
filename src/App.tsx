@@ -13,6 +13,19 @@ export function App() {
   const { data: paginatedTransactions, ...paginatedTransactionsUtils } = usePaginatedTransactions()
   const { data: transactionsByEmployee, ...transactionsByEmployeeUtils } = useTransactionsByEmployee()
   const [isLoading, setIsLoading] = useState(false)
+  const [isFilteredByEmployee, setIsFilteredByEmployee] = useState(false)
+  const [toggledTransactions, setToggledTransactions] = useState<Set<string>>(new Set())
+  const toggleTransaction = useCallback((transactionId: string) => {
+    setToggledTransactions((prevToggled) => {
+      const newToggled = new Set(prevToggled)
+      if (newToggled.has(transactionId)) {
+        newToggled.delete(transactionId)
+      } else {
+        newToggled.add(transactionId)
+      }
+      return newToggled
+    })
+  }, [])
 
   const transactions = useMemo(
     () => paginatedTransactions?.data ?? transactionsByEmployee ?? null,
@@ -21,6 +34,8 @@ export function App() {
 
   const loadAllTransactions = useCallback(async () => {
     setIsLoading(true)
+    setIsFilteredByEmployee(false)
+
     transactionsByEmployeeUtils.invalidateData()
 
     await employeeUtils.fetchAll()
@@ -31,6 +46,7 @@ export function App() {
 
   const loadTransactionsByEmployee = useCallback(
     async (employeeId: string) => {
+      setIsFilteredByEmployee(true)
       paginatedTransactionsUtils.invalidateData()
       await transactionsByEmployeeUtils.fetchById(employeeId)
     },
@@ -64,7 +80,11 @@ export function App() {
             if (newValue === null) {
               return
             }
-
+            if (newValue.id === "") {
+              await loadAllTransactions()
+              return
+            }
+            // console.log(newValue)
             await loadTransactionsByEmployee(newValue.id)
           }}
         />
@@ -74,12 +94,12 @@ export function App() {
         <div className="RampGrid">
           <Transactions transactions={transactions} />
 
-          {transactions !== null && (
+          {transactions !== null && !isFilteredByEmployee && (
             <button
               className="RampButton"
               disabled={paginatedTransactionsUtils.loading}
-              onClick={async () => {
-                await loadAllTransactions()
+              onClick={async (newValue) => {
+                await paginatedTransactionsUtils.fetchAll()
               }}
             >
               View More
