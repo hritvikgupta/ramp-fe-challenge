@@ -39,7 +39,11 @@ export function App() {
     transactionsByEmployeeUtils.invalidateData()
 
     await employeeUtils.fetchAll()
+    // await console.log(employeeUtils.loading, employees, "----")
+
+    // await new Promise((resolve) => setTimeout(resolve, 5000))
     await paginatedTransactionsUtils.fetchAll()
+    // await console.log(employeeUtils.loading, employees, "----2")
 
     setIsLoading(false)
   }, [employeeUtils, paginatedTransactionsUtils, transactionsByEmployeeUtils])
@@ -54,9 +58,13 @@ export function App() {
   )
 
   useEffect(() => {
+    console.log("-----trans", paginatedTransactions)
     if (employees === null && !employeeUtils.loading) {
       loadAllTransactions()
+
+      // console.log(employees, "inside load all")
     }
+    // console.log(employees, "outside load all")
   }, [employeeUtils.loading, employees, loadAllTransactions])
 
   return (
@@ -67,7 +75,7 @@ export function App() {
         <hr className="RampBreak--l" />
 
         <InputSelect<Employee>
-          isLoading={isLoading}
+          isLoading={employeeUtils.loading}
           defaultValue={EMPTY_EMPLOYEE}
           items={employees === null ? [] : [EMPTY_EMPLOYEE, ...employees]}
           label="Filter by employee"
@@ -84,7 +92,7 @@ export function App() {
               await loadAllTransactions()
               return
             }
-            // console.log(newValue)
+
             await loadTransactionsByEmployee(newValue.id)
           }}
         />
@@ -93,8 +101,7 @@ export function App() {
 
         <div className="RampGrid">
           <Transactions transactions={transactions} />
-
-          {transactions !== null && !isFilteredByEmployee && (
+          {transactions !== null && !isFilteredByEmployee && paginatedTransactions?.nextPage && (
             <button
               className="RampButton"
               disabled={paginatedTransactionsUtils.loading}

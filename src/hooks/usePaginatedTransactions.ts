@@ -14,9 +14,10 @@ export function usePaginatedTransactions(): PaginatedTransactionsResult {
     setIsLoading(true);
     if (paginatedTransactions && paginatedTransactions.nextPage === null) {
       setIsLoading(false);
+      console.log("Transactions -> ", paginatedTransactions);
       return;
     }
-
+    console.log("Inside PaginatedT")
     const response = await fetchWithCache<PaginatedResponse<Transaction[]>, PaginatedRequestParams>(
       "paginatedTransactions",
       {
@@ -29,6 +30,9 @@ export function usePaginatedTransactions(): PaginatedTransactionsResult {
         return response
       }
       if (response && previousResponse){
+        console.log(previousResponse.data, "data trans")
+        console.log(response.data, "data 2")
+
         return {
           ...response,
           data: [...previousResponse.data, ...response.data]
